@@ -1,12 +1,20 @@
 import sys
 import os
+import math
+
+import numpy as np
+import pandas as pd
+
+import plotly.express as px
+import plotly.graph_objects as go
+import src.viz as viz
 
 sys.path.insert(0, '..')
 
 curr_path = os.getcwd()
-parent_path = os.path.abspath(os.path.join(path, os.pardir))
+parent_path = os.path.abspath(os.path.join(curr_path, os.pardir))
 
-data_folder = '/data/'
+data_folder = '/website/data/'
 games = ['Humboldt', 'Point Loma', 'Pomona', 'Sonoma']
 
 x0 = 32.887890643008
@@ -68,7 +76,7 @@ def convert_longitude(long):
     :return: converted longitude value
     '''
     
-    converted = (lat - y0) * 100000
+    converted = (long - y0) * 100000
     
     return converted
 
@@ -139,7 +147,7 @@ def shift_coordinates(df, lat_column, long_column,
     
     return df
 
-def filter_coordinates(df, lat_column, long_column, max_x, max_y)
+def filter_coordinates(df, lat_column, long_column, max_x, max_y):
     '''
     Filters out extreme coordinate values
     
@@ -152,8 +160,45 @@ def filter_coordinates(df, lat_column, long_column, max_x, max_y)
     '''
     
     df[lat_column] = df[lat_column].apply(lambda x: x if (x >= 0) & \
-                                         (x <= max_x))
+                                         (x <= max_x) else np.nan)
+    
     df[long_column] = df[long_column].apply(lambda y: y if (y >= 0) & \
-                                         (y <= max_y))
+                                         (y <= max_y) else np.nan)
     
     return df
+
+
+def make_heat_map(df, player, lat_column, long_column,
+                  length = 103, width = 66):
+    '''
+    Creates heat map from coordinates
+    
+    :param df: DataFrame of tracking data with coordinates and player names
+    :param player: String value indicating player
+    :param lat_column: String value indicating latitude column
+    :param long_column: String value indicating longitude column
+    :param length: size length of soccer pitch
+    :param width: size width of soccer pitch
+    :return: heat map of player coordinates
+    '''
+
+    fig = viz.create_empty_field(len_field=103, wid_field=66)
+    
+    player_data = df.loc[df['Player'] == player]
+    
+    fill_df = pd.DataFrame([[player, np.nan, 0, 0],
+                            [player, np.nan, 0, width],
+                            [player, np.nan, length, 0],
+                            [player, np.nan, length, width]],
+                          columns = player_data.columns)
+    
+    player_data = pd.concat([player_data, fill_df], ignore_index = True)
+
+
+    fig.add_trace(go.Histogram2dContour(
+            x = player_data[lat_column],
+            y = player_data[long_column]
+        ))
+
+    
+    return fig
