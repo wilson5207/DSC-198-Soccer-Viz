@@ -26,12 +26,18 @@ def pitch_generate(match, possible_players):
     '''
 
 
-    #I used manual for this os.chdir because there were some problems with the code --Wilson
-    os.chdir(r'C:\Users\16413\Desktop\website' + '/data/' + str(match))
+    path = os.getcwd()
+    print("Original Directory", path)
 
+    os.chdir(path + '/data/' + str(match))
+    print('Player files directory', os.getcwd())
 
     player_files = os.listdir()
-    player_files
+    path = os.getcwd()
+    print('New directory', os.getcwd())
+
+      
+
 
 
 
@@ -91,6 +97,14 @@ def pitch_generate(match, possible_players):
         curr = curr.groupby('Seconds').tail(1)
         
         game_df = pd.concat([game_df, curr], ignore_index = True)
+
+    # prints parent directory
+    pr_path = os.path.abspath(os.path.join(path, os.pardir))
+    print('parent1', pr_path)
+    os.chdir(os.path.abspath(os.path.join(path, os.pardir)))
+    print('back 1 directory', os.getcwd())
+    os.chdir(os.path.abspath(os.path.join(pr_path, os.pardir)))
+    print('End: current d', os.getcwd())
 
     
 
